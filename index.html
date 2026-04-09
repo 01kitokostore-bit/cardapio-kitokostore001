@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Menu Digital - Kitoko Store</title>
+    
+    <!-- Scripts e Bibliotecas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandGreen: '#047857',
+                        brandOrange: '#f97316',
+                        brandDark: '#111827',
+                        brandLight: '#f3f4f6'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sar: env(safe-area-inset-right);
+            --sab: env(safe-area-inset-bottom);
+            --sal: env(safe-area-inset-left);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent;
+            background-color: #f3f4f6;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* Plano de fundo com a foto da loja */
+        .fixed-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-image: linear-gradient(rgba(243, 244, 246, 0.85), rgba(243, 244, 246, 0.9)), 
+                              url('WhatsApp%20Image%202026-03-23%20at%2021.39.50.jpeg');
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+            pointer-events: none;
+            transform: translateZ(0);
+        }
+
+        /* Correção de Zoom no iOS */
+        input, textarea, select {
+            font-size: 16px !important;
+            appearance: none;
+            -webkit-appearance: none;
+            border-radius: 1rem;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .btn-active:active {
+            transform: scale(0.95);
+            opacity: 0.9;
+        }
+
+        .category-pill {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .category-pill.active { 
+            background-color: #f97316; 
+            color: white; 
+            border-color: #f97316;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+        }
+
+        .animate-slide-up { 
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+        }
+        @keyframes slideUp { 
+            from { transform: translateY(100%); } 
+            to { transform: translateY(0); } 
+        }
+        
+        .hero-section {
+            background-color: #047857;
+            padding-top: calc(1rem + var(--sat));
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.15;
+            background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='3' fill='%23fff'/%3E%3C/svg%3E");
+        }
+
+        .product-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        #modal-inner {
+            padding-bottom: calc(2rem + var(--sab));
+        }
+    </style>
+</head>
+<body class="antialiased pb-24">
+
+    <div class="fixed-bg"></div>
+
+    <header class="sticky top-0 z-40 shadow-xl">
+        <div class="hero-section text-white px-4 pb-6">
+            <div class="hero-pattern"></div>
+            <div class="container mx-auto relative z-10">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white p-2 rounded-2xl shadow-lg transform -rotate-6 border-2 border-brandOrange">
+                            <i class="fa-solid fa-shop text-brandOrange text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-black tracking-tighter leading-none">KITOKO <span class="text-brandOrange">STORE</span></h1>
+                            <p class="text-[10px] uppercase tracking-[0.2em] opacity-90 font-bold mt-1">Sabor que Transforma</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleCart()" class="btn-active relative p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 transition-all">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span id="cart-count" class="absolute -top-1 -right-1 bg-brandOrange text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center border-2 border-brandGreen">0</span>
+                    </button>
+                </div>
+                
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-white/60 pointer-events-none"></i>
+                    <input type="text" id="search-input" oninput="filtrarProdutos()" placeholder="O que deseja pedir hoje?" 
+                        class="w-full bg-black/20 backdrop-blur-md border border-white/10 text-white placeholder-white/50 rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-brandOrange/50 transition-all appearance-none">
+                </div>
+            </div>
+        </div>
+
+        <nav class="bg-white/95 backdrop-blur-md border-b border-gray-200 px-4 py-4 overflow-x-auto no-scrollbar flex gap-3" id="category-nav"></nav>
+    </header>
+
+    <main class="container mx-auto px-4 mt-8 space-y-12" id="product-list"></main>
+
+    <!-- Modal de Produto -->
+    <div id="product-modal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-t-[2.5rem] sm:rounded-3xl w-full max-w-lg max-h-[95vh] overflow-y-auto animate-slide-up relative shadow-2xl">
+            <div class="sticky top-0 bg-white/80 backdrop-blur-md z-10 py-4 border-b border-gray-50 sm:hidden">
+                <div class="h-1.5 w-10 bg-gray-200 rounded-full mx-auto"></div>
+            </div>
+            <button onclick="closeProductModal()" class="absolute top-4 right-4 bg-gray-100 rounded-full w-10 h-10 flex items-center justify-center text-gray-700 z-20 hover:bg-gray-200 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Carrinho Lateral -->
+    <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-white shadow-2xl transform translate-x-full transition-transform duration-500 z-50 flex flex-col">
+        <div class="bg-brandGreen text-white p-8 flex justify-between items-center" style="padding-top: calc(2rem + var(--sat))">
+            <div>
+                <h2 class="text-2xl font-black flex items-center gap-3">Carrinho</h2>
+                <p class="text-xs opacity-70 mt-1 uppercase tracking-widest">Kitoko Store</p>
+            </div>
+            <button onclick="toggleCart()" class="text-2xl opacity-80 active:scale-90 transition-all"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-6 space-y-4" id="cart-items"></div>
+        <div class="border-t p-8 bg-gray-50 space-y-6" style="padding-bottom: calc(2rem + var(--sab))">
+            <div class="flex justify-between text-3xl font-black text-brandDark">
+                <span>Total</span>
+                <span id="cart-total" class="text-brandOrange">R$ 0,00</span>
+            </div>
+            <button onclick="openCheckoutForm()" class="btn-active w-full bg-brandGreen text-white font-black py-5 rounded-2xl shadow-xl transition-all text-lg tracking-tight">FINALIZAR PEDIDO</button>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black/80 z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-[2rem] w-full max-w-md p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
+            <button onclick="closeCheckoutForm()" class="absolute top-6 right-6 text-gray-300 hover:text-gray-500 text-xl"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="text-2xl font-black mb-2 text-brandDark">Dados de Entrega</h2>
+            <p class="text-sm text-gray-500 mb-8">Informações necessárias para o envio.</p>
+            <form id="checkout-form" class="space-y-4">
+                <input type="text" id="cx-nome" required placeholder="O seu nome" class="w-full border-2 border-gray-100 rounded-2xl px-6 py-4 outline-none focus:border-brandOrange bg-gray-50">
+                <textarea id="cx-endereco" required placeholder="Endereço (Rua, Nº, Bairro e Referência)" class="w-full border-2 border-gray-100 rounded-2xl px-6 py-4 outline-none focus:border-brandOrange h-28 resize-none bg-gray-50"></textarea>
+                
+                <div class="space-y-4">
+                    <select id="cx-pagamento" onchange="handlePaymentChange()" class="w-full border-2 border-gray-100 rounded-2xl px-6 py-4 outline-none bg-gray-50 focus:border-brandOrange cursor-pointer">
+                        <option value="Pix">Pix</option>
+                        <option value="Cartão">Cartão</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
+
+                    <div id="pix-container" class="bg-orange-50 border-2 border-brandOrange/20 p-4 rounded-2xl space-y-2">
+                        <p class="text-[10px] font-black text-brandOrange uppercase tracking-widest">Chave Pix (CNPJ) - Max Gaia dos Passos</p>
+                        <div class="flex items-center justify-between gap-2">
+                            <span id="pix-key-display" class="font-bold text-gray-700 tracking-tight">61.165.843/0001-32</span>
+                            <button type="button" onclick="copyPixKey()" class="btn-active bg-brandOrange text-white px-4 py-2 rounded-xl text-xs font-black shadow-sm transition-all">
+                                <i class="fa-solid fa-copy mr-1"></i> COPIAR
+                            </button>
+                        </div>
+                    </div>
+
+                    <input type="text" id="cx-troco" placeholder="Troco para quanto?" class="w-full border-2 border-gray-100 rounded-2xl px-6 py-4 hidden outline-none focus:border-brandOrange bg-gray-50">
+                </div>
+
+                <button type="button" onclick="finalizeOrder()" class="btn-active w-full bg-[#25D366] text-white font-black py-5 rounded-2xl flex justify-center items-center gap-3 mt-6 transition-all shadow-xl">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i> ENVIAR PELO WHATSAPP
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Configurações Globais
+        const NUMERO_WHATSAPP = "559180411000";
+        const NOME_LOJA = "KITOKO STORE";
+
+        const categorias = [
+            { id: "almoco", label: "Almoço", icon: "fa-utensils" },
+            { id: "lanches", label: "Lanches", icon: "fa-burger" },
+            { id: "salgados", label: "Salgados", icon: "fa-pie-chart" },
+            { id: "tapioca", label: "Tapioca", icon: "fa-plate-wheat" },
+            { id: "bebidas", label: "Bebidas", icon: "fa-glass-water" },
+            { id: "vitaminas", label: "Vitaminas", icon: "fa-blender" },
+            { id: "cerveja", label: "Cervejas", icon: "fa-beer-mug-empty" }
+        ];
+
+        const cardapio = [
+            // ALMOÇO
+            { id: 101, cat: "almoco", nome: "Arroz com Galinha", desc: "Refeição caseira completa.", preco: 15.00 },
+            { id: 102, cat: "almoco", nome: "Fricassê de Frango", desc: "Prato cremoso com arroz e batata palha.", preco: 20.00 },
+            { id: 103, cat: "almoco", nome: "Strogonofe de Carne", desc: "Clássico Kitoko com arroz e batata palha.", preco: 25.00 },
+            { id: 104, cat: "almoco", nome: "Isca de Carne", desc: "Tiras de carne temperadas.", preco: 25.00 },
+            { id: 105, cat: "almoco", nome: "Isca de Frango", desc: "Tiras de frango crocantes.", preco: 25.00 },
+            { id: 106, cat: "almoco", nome: "Calabresa Acebolada", desc: "Porção generosa de calabresa.", preco: 20.00 },
+
+            // LANCHES
+            { id: 1, cat: "lanches", nome: "Queijo Quente", desc: "Pão de forma com queijo derretido.", preco: 13.50 },
+            { id: 2, cat: "lanches", nome: "Misto Quente", desc: "Queijo e presunto no pão de forma.", preco: 15.00 },
+            { id: 3, cat: "lanches", nome: "Americano", desc: "Queijo, presunto, ovo, alface e tomate.", preco: 20.00 },
+            { id: 4, cat: "lanches", nome: "Sanduíche de Mortadela", desc: "Pão com mortadela fatiada.", preco: 15.00 },
+            { id: 5, cat: "lanches", nome: "Sanduíche de Presunto", desc: "Pão com presunto selecionado.", preco: 15.00 },
+            { id: 6, cat: "lanches", nome: "Sanduíche de Calabresa", desc: "Calabresa acebolada no pão.", preco: 18.00 },
+            { id: 7, cat: "lanches", nome: "Pão com Ovo", desc: "Pão na chapa com ovo frito.", preco: 10.00 },
+            { id: 8, cat: "lanches", nome: "Sanduíche Natural", desc: "Escolha: Peru, Frango ou Atum.", preco: 15.50, opcoes: ["Peito de Peru", "Frango", "Atum"] },
+
+            // SALGADOS
+            { id: 9, cat: "salgados", nome: "Pão de Queijo G", desc: "Tamanho grande e estaladiço.", preco: 10.00 },
+            { id: 10, cat: "salgados", nome: "Pão de Queijo P", desc: "Tamanho pequeno/lanche.", preco: 2.50 },
+            { id: 11, cat: "salgados", nome: "Coxinha de Frango", desc: "Massa fina e crocante.", preco: 12.00 },
+            { id: 12, cat: "salgados", nome: "Bolinho de Carne", desc: "Tradicional de carne bovina.", preco: 12.00 },
+            { id: 13, cat: "salgados", nome: "Croquete Misto", desc: "Carne e temperos especiais.", preco: 12.00 },
+            { id: 14, cat: "salgados", nome: "Pastel de Queijo", desc: "Bem recheado com muçarela.", preco: 12.00 },
+            { id: 15, cat: "salgados", nome: "Enrolado de Salsicha", desc: "Favorito das crianças.", preco: 12.00 },
+            { id: 16, cat: "salgados", nome: "Lanchões", desc: "Salgado de tamanho reforçado.", preco: 12.00 },
+            { id: 17, cat: "salgados", nome: "Empadas", desc: "Massa podre que derrete na boca.", preco: 12.00 },
+            { id: 18, cat: "salgados", nome: "Esfirras", desc: "Carne ou frango temperado.", preco: 12.00 },
+
+            // TAPIOCA
+            { id: 19, cat: "tapioca", nome: "Tapioca com Manteiga", desc: "Leve e deliciosa.", preco: 10.00 },
+            { id: 20, cat: "tapioca", nome: "Tapioca com Queijo", desc: "Muçarela ou coalho.", preco: 12.00 },
+            { id: 21, cat: "tapioca", nome: "Tapioca Queijo e Presunto", desc: "Recheio equilibrado.", preco: 15.00 },
+            { id: 22, cat: "tapioca", nome: "Tapioca Queijo, Presunto e Ovo", desc: "Refeição completa.", preco: 20.00 },
+            { id: 23, cat: "tapioca", nome: "Tapioca com Coco e Queijo", desc: "Regional paraense.", preco: 15.00 },
+            { id: 24, cat: "tapioca", nome: "Tapioca Coco e Leite Condensado", desc: "Opção doce Kitoko.", preco: 15.00 },
+
+            // BEBIDAS (CAFÉS, SUCOS, REFRIGERANTES, ENERGÉTICOS)
+            { id: 31, cat: "bebidas", nome: "Café Preto Coado", desc: "Fresquinho.", preco: 5.50, tamanhos: { "120ML": 5.50, "240ML": 11.00 } },
+            { id: 32, cat: "bebidas", nome: "Café com Leite", desc: "Tradicional.", preco: 6.50, tamanhos: { "120ML": 6.50, "240ML": 13.00 } },
+            { id: 33, cat: "bebidas", nome: "Café Cremoso", desc: "Receita exclusiva.", preco: 9.50, tamanhos: { "120ML": 9.50, "240ML": 19.00 } },
+            { id: 34, cat: "bebidas", nome: "Cappuccino", desc: "Com cacau e canela.", preco: 12.00, tamanhos: { "120ML": 12.00, "240ML": 24.00 } },
+            { id: 35, cat: "bebidas", nome: "Chocolate Quente", desc: "Cremoso.", preco: 9.00, tamanhos: { "120ML": 9.00, "240ML": 18.00 } },
+            { id: 25, cat: "bebidas", nome: "Sucos Naturais", desc: "400ml. Maracujá, Cupuaçu, Abacaxi, Acerola, Goiaba.", preco: 12.00 },
+            { id: 30, cat: "bebidas", nome: "Suco de Laranja", desc: "Natural e espremido na hora.", preco: 15.00 },
+            { id: 201, cat: "bebidas", nome: "Red Bull", desc: "Energético", preco: 17.00 },
+            { id: 202, cat: "bebidas", nome: "Monster", desc: "Energético", preco: 17.00 },
+            { id: 301, cat: "bebidas", nome: "Guaraná Antártica (Lata)", desc: "350ml", preco: 6.50 },
+            { id: 302, cat: "bebidas", nome: "Guaraná Antártica Zero (Lata)", desc: "350ml", preco: 6.50 },
+            { id: 303, cat: "bebidas", nome: "Sprite (Lata)", desc: "350ml", preco: 6.00 },
+            { id: 304, cat: "bebidas", nome: "Sprite Zero (Lata)", desc: "350ml", preco: 6.00 },
+            { id: 305, cat: "bebidas", nome: "Fanta Uva (Lata)", desc: "350ml", preco: 6.00 },
+            { id: 306, cat: "bebidas", nome: "Fanta Laranja (Lata)", desc: "350ml", preco: 6.00 },
+            { id: 307, cat: "bebidas", nome: "Schweppes (Lata)", desc: "350ml", preco: 7.00 },
+            { id: 308, cat: "bebidas", nome: "Coca Cola (Lata)", desc: "350ml", preco: 7.00 },
+            { id: 309, cat: "bebidas", nome: "Coca cola Zero (Lata)", desc: "350ml", preco: 7.00 },
+            { id: 310, cat: "bebidas", nome: "Coca Cola 600ml", desc: "Garrafa", preco: 9.00 },
+            { id: 311, cat: "bebidas", nome: "Coca Cola 1L", desc: "Garrafa", preco: 12.00 },
+            { id: 312, cat: "bebidas", nome: "Coca Cola 1L Zero", desc: "Garrafa", preco: 12.00 },
+            { id: 313, cat: "bebidas", nome: "Coca Cola 2L", desc: "Garrafa", preco: 15.00 },
+            { id: 314, cat: "bebidas", nome: "Coca Cola 2L Zero", desc: "Garrafa", preco: 15.00 },
+
+            // VITAMINAS
+            { id: 36, cat: "vitaminas", nome: "Abacatada", desc: "Abacate com leite.", preco: 16.00, temAdicionais: true },
+            { id: 37, cat: "vitaminas", nome: "Bananada", desc: "Banana com leite.", preco: 14.00, temAdicionais: true },
+            { id: 38, cat: "vitaminas", nome: "Suco de Mamão", desc: "Natural.", preco: 14.00, temAdicionais: true },
+            { id: 39, cat: "vitaminas", nome: "Abacate com Banana", desc: "Energia dupla.", preco: 20.00, temAdicionais: true },
+            { id: 40, cat: "vitaminas", nome: "Banana com Mamão", desc: "Misto nutritivo.", preco: 18.00, temAdicionais: true },
+            { id: 41, cat: "vitaminas", nome: "Misturadão", desc: "Mix especial Kitoko.", preco: 22.00, temAdicionais: true },
+            { id: 42, cat: "vitaminas", nome: "Whey Protein", desc: "Suplemento com fruta.", preco: 22.00, temAdicionais: true },
+
+            // CERVEJA
+            { id: 401, cat: "cerveja", nome: "Budweiser Zero (Lata)", desc: "350ml", preco: 11.00 },
+            { id: 402, cat: "cerveja", nome: "Budweiser Long Neck", desc: "275ml", preco: 12.90 },
+            { id: 403, cat: "cerveja", nome: "Budweiser (Lata)", desc: "350ml", preco: 11.00 },
+            { id: 404, cat: "cerveja", nome: "Michelob (Lata)", desc: "350ml", preco: 12.90 },
+            { id: 405, cat: "cerveja", nome: "Michelob Long Neck", desc: "355ml", preco: 14.60 },
+            { id: 406, cat: "cerveja", nome: "Imperio (Lata)", desc: "275ml", preco: 7.25 },
+            { id: 407, cat: "cerveja", nome: "Imperio Long Neck", desc: "275ml", preco: 9.80 },
+            { id: 408, cat: "cerveja", nome: "Corona (Lata)", desc: "350ml", preco: 11.90 },
+            { id: 409, cat: "cerveja", nome: "Corona Long Neck", desc: "330ml", preco: 13.90 },
+            { id: 410, cat: "cerveja", nome: "Heineken (Lata)", desc: "350ml", preco: 11.90 },
+            { id: 411, cat: "cerveja", nome: "Heineken Long Neck", desc: "330ml", preco: 12.90 },
+            { id: 412, cat: "cerveja", nome: "Heisenberg Pilsen", desc: "Artesanal", preco: 9.90 },
+            { id: 413, cat: "cerveja", nome: "Heisenberg Ipa", desc: "Artesanal", preco: 10.90 },
+            { id: 414, cat: "cerveja", nome: "Cristal", desc: "350ml", preco: 10.00 },
+            { id: 415, cat: "cerveja", nome: "Skol Beats Long Neck", desc: "Vários sabores", preco: 11.50 },
+            { id: 416, cat: "cerveja", nome: "51 Ice Long Neck", desc: "Vários sabores", preco: 11.00 },
+
+            // OUTRAS
+            { id: 501, cat: "outras", nome: "Água 500 ml", desc: "Sem gás", preco: 4.00 },
+            { id: 502, cat: "outras", nome: "Água 1,5L", desc: "Sem gás", preco: 9.00 },
+            { id: 503, cat: "outras", nome: "Água 2L", desc: "Sem gás", preco: 12.00 },
+            { id: 504, cat: "outras", nome: "Água com gás 500ml", desc: "Refrescante", preco: 4.50 },
+            { id: 505, cat: "outras", nome: "YO Pro", desc: "Bebida proteica", preco: 15.90 },
+            { id: 506, cat: "outras", nome: "Nescau", desc: "Pronto para beber", preco: 5.00 },
+            { id: 507, cat: "outras", nome: "Nescafé", desc: "Solúvel", preco: 18.00 },
+            { id: 508, cat: "outras", nome: "Gatorade", desc: "Uva, Morango ou Laranja", preco: 9.90 }
+        ];
+
+        const adicionaisDisponiveis = [
+            { nome: "Aveia", preco: 4.00 }, { nome: "Chia", preco: 4.00 },
+            { nome: "Linhaça", preco: 4.00 }, { nome: "Neston", preco: 4.00 },
+            { nome: "Farinha Láctea", preco: 5.00 }, { nome: "Água de Coco", preco: 4.00 }
+        ];
+
+        let carrinho = [];
+        let produtoAtual = null;
+
+        const formatBRL = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        function init() {
+            renderCategorias();
+            renderProdutos();
+            setupScroll();
+        }
+
+        function renderCategorias() {
+            const nav = document.getElementById('category-nav');
+            nav.innerHTML = categorias.map((cat, idx) => `
+                <div class="category-pill btn-active ${idx === 0 ? 'active' : ''} flex items-center gap-3 px-6 py-4 rounded-2xl border border-gray-100 bg-white text-gray-700 font-bold text-sm whitespace-nowrap shadow-sm" 
+                     onclick="setActiveCat(this, '${cat.id}')">
+                    <i class="fa-solid ${cat.icon} text-lg"></i> ${cat.label}
+                </div>
+            `).join('');
+        }
+
+        function setActiveCat(el, catId) {
+            document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            const target = document.getElementById(`cat-${catId}`);
+            if (target) {
+                const headerOffset = 180;
+                const offsetPosition = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+            }
+        }
+
+        function renderProdutos(busca = "") {
+            const container = document.getElementById('product-list');
+            let html = '';
+            categorias.forEach(cat => {
+                const itens = cardapio.filter(p => p.cat === cat.id && p.nome.toLowerCase().includes(busca.toLowerCase()));
+                if (itens.length === 0) return;
+                html += `<section id="cat-${cat.id}" class="scroll-mt-48">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="h-10 w-10 bg-brandGreen text-white rounded-xl flex items-center justify-center shadow-lg transform rotate-3">
+                            <i class="fa-solid ${cat.icon} text-lg"></i>
+                        </div>
+                        <h2 class="text-2xl font-black text-brandDark uppercase tracking-tighter">${cat.label}</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${itens.map(p => `
+                            <div class="product-card btn-active p-5 rounded-[2rem] shadow-sm flex flex-col justify-between transition-all relative" onclick="abrirModal(${p.id})">
+                                <div class="relative z-10">
+                                    <h3 class="font-extrabold text-lg text-brandDark leading-tight mb-2">${p.nome}</h3>
+                                    <p class="text-gray-400 text-xs leading-relaxed mb-4 line-clamp-2">${p.desc}</p>
+                                </div>
+                                <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-100">
+                                    <span class="font-black text-brandGreen text-xl">${p.tamanhos ? formatBRL(Object.values(p.tamanhos)[0]) : formatBRL(p.preco)}</span>
+                                    <div class="bg-brandOrange text-white w-10 h-10 rounded-2xl flex items-center justify-center shadow-md">
+                                        <i class="fa-solid fa-plus text-sm"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>`;
+            });
+            container.innerHTML = html || '<div class="text-center py-24 text-gray-300 font-bold uppercase">Sem resultados</div>';
+        }
+
+        function abrirModal(id) {
+            const p = cardapio.find(x => x.id === id);
+            produtoAtual = { ...p, qtd: 1, total: p.preco, extras: [], tamanho: null, opcao: null, obs: "" };
+            const content = document.getElementById('modal-content');
+            let extraHTML = '';
+            
+            if (p.tamanhos) {
+                extraHTML += `<div class="mb-6 px-1"><p class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Selecione o Tamanho:</p><div class="space-y-2">
+                        ${Object.entries(p.tamanhos).map(([size, price], i) => `<label class="flex justify-between p-4 border-2 border-gray-100 rounded-2xl cursor-pointer transition-all has-[:checked]:border-brandOrange has-[:checked]:bg-orange-50"><span class="flex items-center gap-3 font-bold text-gray-700"><input type="radio" name="size" value="${size}" ${i === 0 ? 'checked' : ''} onchange="atualizarPrecoModal()" class="w-6 h-6 accent-brandOrange"> ${size}</span><span class="font-black text-brandGreen">${formatBRL(price)}</span></label>`).join('')}</div></div>`;
+            }
+            if (p.opcoes) {
+                extraHTML += `<div class="mb-6 px-1"><p class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Escolha a Opção:</p><div class="grid grid-cols-1 gap-2">
+                        ${p.opcoes.map((o, i) => `<label class="flex items-center p-4 border-2 border-gray-100 rounded-2xl cursor-pointer has-[:checked]:border-brandOrange has-[:checked]:bg-orange-50 transition-all"><input type="radio" name="recheio" value="${o}" ${i === 0 ? 'checked' : ''} onchange="atualizarPrecoModal()" class="w-6 h-6 accent-brandOrange mr-4"><span class="font-bold text-gray-700">${o}</span></label>`).join('')}</div></div>`;
+            }
+            if (p.temAdicionais) {
+                extraHTML += `<div class="mb-6 px-1"><p class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Extras (+ R$):</p><div class="grid grid-cols-1 gap-2">
+                        ${adicionaisDisponiveis.map((ex, i) => `<label class="flex justify-between p-4 border-2 border-gray-100 rounded-2xl cursor-pointer hover:bg-gray-50 transition-all has-[:checked]:border-brandGreen has-[:checked]:bg-green-50"><span class="flex items-center gap-3 font-bold text-gray-700"><input type="checkbox" class="modal-extra w-6 h-6 accent-brandGreen" value="${i}" onchange="atualizarPrecoModal()"> ${ex.nome}</span><span class="text-brandGreen font-black">+ ${formatBRL(ex.preco)}</span></label>`).join('')}</div></div>`;
+            }
+
+            content.innerHTML = `
+                <div class="p-6 pb-10" id="modal-inner">
+                    <div class="mb-6">
+                        <h2 class="text-3xl font-black text-brandDark mb-2 tracking-tighter">${p.nome}</h2>
+                        <p class="text-gray-400 leading-relaxed text-sm font-medium">${p.desc}</p>
+                    </div>
+                    ${extraHTML}
+                    
+                    <div class="mb-6">
+                        <p class="font-bold text-xs text-gray-400 uppercase tracking-widest mb-3">Observação Especial:</p>
+                        <textarea id="modal-obs" placeholder="Ex: Sem cebola, bem gelada, sabor morango..." class="w-full border-2 border-gray-100 rounded-2xl px-4 py-3 outline-none focus:border-brandOrange h-24 resize-none bg-gray-50 appearance-none"></textarea>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-6 border-t border-gray-100 pt-6">
+                        <div class="flex items-center bg-gray-100 rounded-2xl p-1">
+                            <button onclick="changeModalQtd(-1)" class="w-10 h-10 text-xl font-bold text-gray-600">-</button>
+                            <span id="modal-qtd" class="w-8 text-center font-black text-xl text-brandDark">1</span>
+                            <button onclick="changeModalQtd(1)" class="w-10 h-10 text-xl font-bold text-gray-600">+</button>
+                        </div>
+                        <button onclick="adicionarAoCarrinho()" class="btn-active flex-1 ml-4 bg-brandOrange text-white font-black py-6 rounded-3xl shadow-xl transition-all">ADICIONAR <span id="modal-total" class="ml-1 opacity-80">${formatBRL(p.preco)}</span></button>
+                    </div>
+                </div>`;
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            atualizarPrecoModal();
+        }
+
+        function atualizarPrecoModal() {
+            let base = produtoAtual.preco;
+            const sizeRadio = document.querySelector('input[name="size"]:checked');
+            if (sizeRadio) { base = produtoAtual.tamanhos[sizeRadio.value]; produtoAtual.tamanho = sizeRadio.value; }
+            const optRadio = document.querySelector('input[name="recheio"]:checked');
+            if (optRadio) { produtoAtual.opcao = optRadio.value; }
+            let extraTotal = 0;
+            const checks = document.querySelectorAll('.modal-extra:checked');
+            const selecionados = [];
+            checks.forEach(c => { const ex = adicionaisDisponiveis[c.value]; extraTotal += ex.preco; selecionados.push(ex); });
+            produtoAtual.extras = selecionados;
+            produtoAtual.total = (base + extraTotal) * produtoAtual.qtd;
+            document.getElementById('modal-total').innerText = formatBRL(produtoAtual.total);
+        }
+
+        function changeModalQtd(v) { 
+            produtoAtual.qtd = Math.max(1, produtoAtual.qtd + v); 
+            document.getElementById('modal-qtd').innerText = produtoAtual.qtd; 
+            atualizarPrecoModal(); 
+        }
+
+        function adicionarAoCarrinho() { 
+            produtoAtual.obs = document.getElementById('modal-obs').value.trim();
+            carrinho.push({ ...produtoAtual }); 
+            atualizarCarrinhoUI(); 
+            closeProductModal(); 
+            mostrarToast(`${produtoAtual.nome} adicionado!`); 
+        }
+
+        function atualizarCarrinhoUI() {
+            const count = carrinho.reduce((acc, i) => acc + i.qtd, 0);
+            document.getElementById('cart-count').innerText = count;
+            const container = document.getElementById('cart-items');
+            if (carrinho.length === 0) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-center"><div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4"><i class="fa-solid fa-basket-shopping text-2xl text-gray-300"></i></div><p class="font-black text-gray-300 text-sm uppercase">Carrinho Vazio</p></div>`;
+                document.getElementById('cart-total').innerText = formatBRL(0);
+                return;
+            }
+            let total = 0;
+            container.innerHTML = carrinho.map((item, idx) => {
+                total += item.total;
+                return `<div class="flex justify-between items-start gap-4 bg-white border border-gray-100 p-5 rounded-3xl"><div class="flex-1"><h4 class="font-extrabold text-brandDark tracking-tight">${item.qtd}x ${item.nome} ${item.tamanho ? '<span class="text-[10px] text-gray-400">('+item.tamanho+')</span>' : ''}</h4>${item.opcao ? `<p class="text-[9px] text-gray-400 font-black uppercase mt-1">Opção: ${item.opcao}</p>` : ''}${item.extras.length > 0 ? `<p class="text-[9px] text-brandGreen font-black mt-1">Extras: ${item.extras.map(e => e.nome).join(', ')}</p>` : ''}${item.obs ? `<p class="text-[9px] text-brandOrange italic mt-1 font-bold">Obs: ${item.obs}</p>` : ''}<p class="text-base font-black text-brandOrange mt-2">${formatBRL(item.total)}</p></div><button onclick="removerItem(${idx})" class="btn-active text-gray-300 hover:text-red-500 p-2 bg-gray-50 rounded-xl"><i class="fa-solid fa-trash-can text-sm"></i></button></div>`;
+            }).join('');
+            document.getElementById('cart-total').innerText = formatBRL(total);
+        }
+
+        function removerItem(idx) { carrinho.splice(idx, 1); atualizarCarrinhoUI(); }
+
+        function handlePaymentChange() {
+            const pag = document.getElementById('cx-pagamento').value;
+            const trocoInput = document.getElementById('cx-troco');
+            const pixContainer = document.getElementById('pix-container');
+            trocoInput.classList.toggle('hidden', pag !== 'Dinheiro');
+            pixContainer.classList.toggle('hidden', pag !== 'Pix');
+        }
+
+        function copyPixKey() {
+            const keyText = "61165843000132"; // CNPJ apenas em números para evitar erros no banco
+            const tempInput = document.createElement("input");
+            tempInput.value = keyText;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            mostrarToast("Chave Pix copiada!");
+        }
+
+        function finalizeOrder() {
+            const nome = document.getElementById('cx-nome').value.trim();
+            const end = document.getElementById('cx-endereco').value.trim();
+            const pag = document.getElementById('cx-pagamento').value;
+            const troco = document.getElementById('cx-troco').value;
+            if (!nome || !end) return alert("Por favor, preencha o seu Nome e Endereço.");
+            
+            const now = new Date();
+            const dataFormatada = now.toLocaleDateString('pt-BR');
+            
+            let msg = `🛒 *NOVO PEDIDO - ${NOME_LOJA}*\n`;
+            msg += `Data: *${dataFormatada}*\n\n`;
+            msg += `👤 *Cliente:* ${nome}\n`;
+            msg += `📍 *Endereço:* ${end}\n`;
+            msg += `------------------------------\n`;
+
+            let total = 0;
+            carrinho.forEach(item => {
+                total += item.total;
+                msg += `✅ ${item.qtd}x ${item.nome}${item.tamanho ? ' ('+item.tamanho+')' : ''}${item.opcao ? ' - '+item.opcao : ''}\n`;
+                if(item.obs) msg += `   _Obs: ${item.obs}_\n`;
+                msg += `   Subtotal: ${formatBRL(item.total)}\n\n`;
+            });
+            
+            msg += `------------------------------\n`;
+            msg += `💰 *TOTAL: ${formatBRL(total)}*\n`;
+            msg += `💳 *Pagamento:* ${pag}${troco ? ' (Troco para ' + troco + ')' : ''}`;
+            
+            window.open(`https://wa.me/${NUMERO_WHATSAPP}?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function toggleCart() { document.getElementById('cart-sidebar').classList.toggle('translate-x-full'); }
+        function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); document.body.style.overflow = 'auto'; }
+        function openCheckoutForm() { if (carrinho.length === 0) return alert("O seu carrinho está vazio!"); document.getElementById('checkout-modal').classList.remove('hidden'); handlePaymentChange(); }
+        function closeCheckoutForm() { document.getElementById('checkout-modal').classList.add('hidden'); }
+        function filtrarProdutos() { renderProdutos(document.getElementById('search-input').value); }
+        
+        function mostrarToast(txt) {
+            const t = document.createElement('div');
+            t.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-brandDark text-white px-8 py-5 rounded-[2rem] shadow-2xl z-[100] font-black text-xs animate-slide-up flex items-center gap-4 border border-white/10';
+            t.innerHTML = `<i class="fa-solid fa-circle-check text-brandOrange text-base"></i> ${txt}`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2500);
+        }
+
+        function setupScroll() {
+            window.addEventListener('scroll', () => {
+                const sections = document.querySelectorAll('section');
+                let cur = '';
+                sections.forEach(s => { if (window.pageYOffset >= s.offsetTop - 220) cur = s.getAttribute('id'); });
+                document.querySelectorAll('.category-pill').forEach(p => { 
+                    const onclickStr = p.getAttribute('onclick');
+                    p.classList.toggle('active', onclickStr.includes(cur)); 
+                });
+            });
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
